@@ -6,7 +6,8 @@ pygtk.require('2.0')
 import gtk
 import os
 from datetime import timedelta
-from time import time
+import time
+from time import *
 from math import floor
 gtk.gdk.threads_init()
 import gobject
@@ -20,6 +21,11 @@ VIDEO_CHUNK_LENGTH=600 # Seconds
 TICK_INTERVAL=5000 # Milliseconds
 
 class Workday:
+  SESSION_NOT_STARTED = 1000
+  SESSION_STARTED = 1001
+  SESSION_PAUSED = 1002
+  SESSION_ENDED = 1003
+
   def __init__(self):
     # Internal initialization
     self.cur_proc = None
@@ -30,21 +36,30 @@ class Workday:
     self.ind.set_icon(self.icon_directory()+"idle.png")
 
     self.menu = gtk.Menu()
+
+    # Session item
+    self.session = gtk.MenuItem('Session:')
+    #self.session.connect("activate", self.noop)
+    self.session.set_sensitive(False)
+    self.menu.append(self.session)
+
+    # Start session item
+    self.start = gtk.MenuItem('Start')
+    self.start.connect("activate", self.start_session)
+    self.menu.append(self.start)
+
+    # Pause item
+    self.pause = gtk.MenuItem('Pause')
+    self.pause.connect("activate", self.pause_session)
+    self.pause.set_sensitive(False)
+    self.menu.append(self.pause)
+
     # Tooltip item
-    self.item = gtk.MenuItem('Record')
-    self.item.connect("activate", self.start_recording)
-    self.item.show()
-    self.menu.append(self.item)
-    # Tooltip item
-    self.item = gtk.MenuItem('Stop')
-    self.item.connect("activate", self.stop_recording, None)
-    self.item.show()
-    self.menu.append(self.item)
-    # Tooltip item
-    self.item_compile = gtk.MenuItem('Compile')
-    self.item_compile.connect("activate", self.compile_full_video, None)
-    self.item_compile.show()
-    self.menu.append(self.item_compile)
+    self.end = gtk.MenuItem('End')
+    self.end.connect("activate", self.end_session, None)
+    self.end.set_sensitive(False)
+    self.menu.append(self.end)
+
     # A separator
     separator = gtk.SeparatorMenuItem()
     separator.show()
@@ -56,9 +71,53 @@ class Workday:
     self.menu.append(item)
     self.menu.show_all()
     self.ind.set_menu(self.menu)
+
+    self.session_status = self.SESSION_NOT_STARTED
+    self.total_session_time = 0
+
+  def noop(self, *args):
     pass
 
-  def start_recording(self, *args):
+  def start_session(self, *args):
+    if self.session_status == self.SESSION_NOT_STARTED or self.session_status == self.SESSION_PAUSED or self.session_status == self.SESSION_ENDED:
+      self.start_recording()
+      self.start.set_sensitive(False)
+      self.pause.set_sensitive(True)
+      self.end.set_sensitive(True)
+      if self.session_status != self.SESSION_PAUSED:
+        self.total_session_time = 0
+        self.session.set_label("Session:")
+      pass
+      self.session_status = self.SESSION_STARTED
+    else:
+      # @TODO: Error?
+      pass
+    pass
+
+  def pause_session(self, *args):
+    if self.session_status == self.SESSION_STARTED:
+      self.session_status = self.SESSION_PAUSED
+      self.stop_recording()
+
+      self.start.set_sensitive(True)
+      self.start.set_label("Continue")
+      self.pause.set_sensitive(False)
+      self.end.set_sensitive(True)
+    pass
+
+  def end_session(self, *args):
+    if self.session_status == self.SESSION_STARTED or self.session_status == self.SESSION_PAUSED:
+      self.session_status = self.SESSION_ENDED
+      self.stop_recording()
+      source_id = gobject.timeout_add(2000, self.compile_session)
+
+      self.start.set_sensitive(True)
+      self.start.set_label("Start")
+      self.pause.set_sensitive(False)
+      self.end.set_sensitive(False)
+    pass
+
+  def start_recording(self):
     if not self.cur_proc:
       cmd_args = "-an -f x11grab -r {} -s {} -i $DISPLAY+0,0 -vcodec libx264 -b 150k -threads 2 -y ~/Videos/workday/$(date +%Y-%m-%d)/workday-$(date +%H-%M-%S).mp4".format(INPUT_FPS, SIZE)
       self.cur_record_start_time = time()
@@ -68,7 +127,7 @@ class Workday:
       source_id = gobject.timeout_add(TICK_INTERVAL, self.update)
     pass
 
-  def stop_recording(self, *args):
+  def stop_recording(self):
     if self.cur_proc:
       self.cur_proc.communicate('q\n')
       self.cur_proc = None
@@ -76,7 +135,7 @@ class Workday:
       self.ind.set_icon(self.icon_directory()+"idle.png")
     pass
 
-  def compile_full_video(self, *args):
+  def compile_session(self):
     if not self.cur_proc:
       #TODO: Use an instance variable to hold $(date +%Y-%m-%d)
       subprocess.call("cd ~/Videos/workday/$(date +%Y-%m-%d) && MP4Box $(for file in workday-*.mp4; do echo -n \" -cat \"$file; done) full-$(date +%Y-%m-%d).mp4", shell=True)
@@ -98,6 +157,18 @@ class Workday:
         self.start_recording()
       else:
         source_id = gobject.timeout_add(TICK_INTERVAL, self.update)
+
+    if self.session_status == self.SESSION_STARTED:
+      self.total_session_time += TICK_INTERVAL / 1000
+      formatted_time = self.format_seconds_to_hhmmss(self.total_session_time)
+      self.session.set_label('Session: [{}]'.format(formatted_time))
+
+  def format_seconds_to_hhmmss(self, seconds):
+      hours = seconds // (60*60)
+      seconds %= (60*60)
+      minutes = seconds // 60
+      seconds %= 60
+      return "%02i:%02i:%02i" % (hours, minutes, seconds)
 
   def main(self):
     gtk.main()
