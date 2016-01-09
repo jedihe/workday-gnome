@@ -12,6 +12,15 @@ class WorkdayConfig(Config):
         #super(Config, self).__init__(self.cfgFilePath)
         Config.__init__(self, self.cfgFilePath)
 
+        # Remove sessions that are not found
+        ses_to_remove = []
+        for ses, data in self.getSessions().iteritems():
+          if (not os.path.exists(data['dirPath'])):
+            ses_to_remove.append(ses)
+
+        for i in ses_to_remove:
+          self.delSession(i)
+
     def getSessions(self):
         if 'sessions' in self._config:
             return self._config['sessions']
