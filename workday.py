@@ -56,12 +56,6 @@ class Workday:
     self.session_name.connect("activate", self.set_session_name)
     self.menu.append(self.session_name)
 
-    # Session item
-    #self.session = gtk.MenuItem('-No Elapsed Time-')
-    #self.session.connect("activate", self.noop)
-    #self.session.set_sensitive(False)
-    #self.menu.append(self.session)
-
     # Start/Continue session item
     start_label = 'Start' if session_status in clean_session_statuses else 'Continue'
     self.start = gtk.MenuItem(start_label)
@@ -78,7 +72,7 @@ class Workday:
 
     # Tooltip item
     self.end = gtk.MenuItem('End')
-    self.end.connect("activate", self.end_session, None)
+    self.end.connect("activate", self.end_session_confirm, None)
     self.end.set_sensitive(False if session_status in clean_session_statuses else True)
     self.menu.append(self.end)
 
@@ -199,7 +193,18 @@ class Workday:
       self.update_menu()
     pass
 
-  def end_session(self, *args):
+  def end_session_confirm(self, *args):
+    messagedialog = gtk.MessageDialog(parent=None,
+                                      flags=gtk.DIALOG_MODAL,
+                                      type=gtk.MESSAGE_WARNING,
+                                      buttons=gtk.BUTTONS_OK_CANCEL,
+                                      message_format="Are you sure you want to end the session?")
+    if messagedialog.run() == gtk.RESPONSE_OK:
+      self.end_session()
+
+    messagedialog.destroy()
+
+  def end_session(self):
     session_status = self._session.getStatus()
     if session_status == self._session.SESSION_STARTED or session_status == self._session.SESSION_PAUSED:
       self.stop_recording()
