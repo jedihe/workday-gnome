@@ -18,8 +18,11 @@ class WorkdayConfig(Config):
           if (not os.path.exists(data['dirPath'])):
             ses_to_remove.append(ses)
 
-        for i in ses_to_remove:
-          self.delSession(i)
+        if (len(ses_to_remove) > 0):
+          for i in ses_to_remove:
+            self.delSession(i)
+
+          self.save()
 
     def getSessions(self):
         if 'sessions' in self._config:

@@ -80,9 +80,9 @@ class WorkdaySession:
         loadedSession = self._cfg.getSession(name)
         if loadedSession != False:
             self._name = name
-            self._duration = loadedSession.duration
-            self._dirPath = loadedSession.dirPath
-            self._started = loadedSession.started
+            self._duration = loadedSession['duration']
+            self._dirPath = loadedSession['dirPath']
+            self._started = loadedSession['started']
             return True
         else:
             return False
