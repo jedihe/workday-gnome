@@ -16,7 +16,7 @@ import subprocess
 
 from lib.workday_config import WorkdayConfig
 from lib.workday_session import WorkdaySession
-from lib.takeinput import TakeInput
+from lib.pygtk_text_entry_dialog import wdTextEntryDialog
 
 #Parameters
 INPUT_FPS="0.5"
@@ -152,9 +152,7 @@ class Workday:
 
   def set_session_name(self, *args):
     if (self._session.getStatus() == self._session.SESSION_NOT_STARTED):
-      inputBox = TakeInput("Enter the session name")
-      inputBox.waitForInput()
-      new_session_name = inputBox.getString()
+      new_session_name = wdTextEntryDialog().getText()
       if (len(new_session_name) > 0):
         self._session.setName(new_session_name)
         self.start.activate()
