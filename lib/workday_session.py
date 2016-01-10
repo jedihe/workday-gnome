@@ -64,6 +64,9 @@ class WorkdaySession:
     def getDirPath(self):
         return self._dirPath
 
+    def getDirPathShellQuoted(self):
+        return "'" + self._dirPath.replace("'", "'\\''") + "'"
+
     def _dumpSession(self):
         return {
             'duration': self._duration,

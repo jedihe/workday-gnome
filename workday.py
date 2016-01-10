@@ -212,7 +212,7 @@ class Workday:
   def start_recording(self):
     if not self.cur_proc:
       chunkFilename = 'workday-{}.mp4'.format(strftime('%Y-%m-%d-%H-%M-%S'))
-      cmd_args = "-an -f x11grab -r {} -s {} -i $DISPLAY+0,0 -vcodec libx264 -b 150k -threads 2 -y {}/{}".format(INPUT_FPS, SIZE, self._session.getDirPath(), chunkFilename)
+      cmd_args = "-an -f x11grab -r {} -s {} -i $DISPLAY+0,0 -vcodec libx264 -b 150k -threads 2 -y {}/{}".format(INPUT_FPS, SIZE, self._session.getDirPathShellQuoted(), chunkFilename)
       self.cur_record_start_time = time()
       self.cur_record_last_time = self.cur_record_start_time
       self.ind.set_icon(self.icon_directory()+"working.png")
@@ -231,7 +231,11 @@ class Workday:
 
   def compile_session(self):
     if not self.cur_proc:
-      subprocess.call("cd {} && MP4Box $(for file in workday-*.mp4; do echo -n \" -cat \"$file; done) full-{}.mp4".format(self._session.getDirPath(), self._session.getName()), shell=True)
+      # Properly quote the filename since it may include spaces
+      output_filename = "'full-{}.mp4'".format(self._session.getName().replace("'", "'\\''"))
+      compile_command = "cd {} && MP4Box $(for file in workday-*.mp4; do echo -n ' -cat '$file; done) {}".format(self._session.getDirPathShellQuoted(), output_filename)
+      print compile_command
+      subprocess.call(compile_command, shell=True)
 
       # Keep duration of last session
       self.ended_session = self._session
