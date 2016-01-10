@@ -18,14 +18,14 @@ class wdTextEntryDialog(object):
           gtk.MESSAGE_QUESTION,
           gtk.BUTTONS_OK,
           None)
-      dialog.set_markup('Please enter the <b>session name</b>:')
+      dialog.set_title('Name the new session')
+      dialog.set_markup('\nPlease enter the <b>session name</b>:')
       #create the text input field
       entry = gtk.Entry()
       #allow the user to press enter to do ok
       entry.connect("activate", self.responseToDialog, dialog, gtk.RESPONSE_OK)
       #create a horizontal box to pack the entry and a label
       hbox = gtk.HBox()
-      hbox.pack_start(gtk.Label("Name:"), False, 5, 5)
       hbox.pack_end(entry)
       #add it and show it
       dialog.vbox.pack_end(hbox, True, True, 0)
