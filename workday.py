@@ -161,9 +161,10 @@ class Workday:
       inputBox = TakeInput("Enter the session name")
       inputBox.waitForInput()
       new_session_name = inputBox.getString()
-      self._session.setName(new_session_name)
-      self.start.activate()
-      self.update_menu()
+      if (len(new_session_name) > 0):
+        self._session.setName(new_session_name)
+        self.start.activate()
+        self.update_menu()
 
   def noop(self, *args):
     pass
