@@ -146,11 +146,11 @@ class Workday:
     previous_session_label = gtk.Label(previous_session_label_text)
     ended_session_info = gtk.ImageMenuItem()
     ended_session_info.add(previous_session_label)
-    ended_session_info.set_image(gtk.image_new_from_pixbuf(ended_session_info.render_icon(gtk.STOCK_INFO, gtk.ICON_SIZE_MENU)))
+    ended_session_info.set_image(self._get_menu_icon(ended_session_info, gtk.STOCK_INFO, False))
     ended_session_info.set_always_show_image(True)
     ended_session_info.set_sensitive(False)
     self.ended_session_info = ended_session_info
-    self.menu.append(ended_session_info)
+    self.menu.append(self.ended_session_info)
 
     # A separator
     self.menu.append(gtk.SeparatorMenuItem())
@@ -172,16 +172,20 @@ class Workday:
     mi_sensitive = True if session_status in enabled_statuses else False
     mi = gtk.ImageMenuItem(label_text)
     mi.set_always_show_image(True)
-    miimage = mi.render_icon(stock_icon, gtk.ICON_SIZE_MENU)
-    mi.set_image(gtk.image_new_from_pixbuf(miimage))
 
-    empty_icon = mi.render_icon(gtk.STOCK_NEW, gtk.ICON_SIZE_MENU).copy()
-    empty_icon.fill(0x00000000)
-    miimage.composite(empty_icon, 0, 0, miimage.get_width(), miimage.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_NEAREST, 255 if mi_sensitive else 127)
-    mi.set_image(gtk.image_new_from_pixbuf(empty_icon))
+    mi.set_image(self._get_menu_icon(mi, stock_icon, mi_sensitive))
     mi.set_sensitive(mi_sensitive)
 
     return mi
+
+  def _get_menu_icon(self, widget, stock_icon, sensitive = True):
+    icon = widget.render_icon(stock_icon, gtk.ICON_SIZE_MENU)
+
+    empty_icon = widget.render_icon(gtk.STOCK_NEW, gtk.ICON_SIZE_MENU).copy()
+    empty_icon.fill(0x00000000)
+    icon.composite(empty_icon, 0, 0, icon.get_width(), icon.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_NEAREST, 255 if sensitive else 127)
+
+    return gtk.image_new_from_pixbuf(empty_icon)
 
   def update_menu(self):
     self.ind.set_menu(self.get_menu())
