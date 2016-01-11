@@ -84,32 +84,30 @@ class Workday:
     self.menu.append(self.session_name)
 
     # Start/Continue session item
-    start_label = 'Start' if session_status in clean_session_statuses else 'Continue'
-    self.start = gtk.MenuItem(start_label)
-    self.start.connect("activate", self.start_session)
+    start_label_text = 'Start' if session_status in clean_session_statuses else 'Continue'
     start_session_statuses = [WorkdaySession.SESSION_NOT_STARTED, WorkdaySession.SESSION_PAUSED]
-    self.start.set_sensitive(True if session_status in start_session_statuses else False)
+    self.start = self._get_menu_item(gtk.STOCK_MEDIA_RECORD, start_label_text, start_session_statuses)
+    self.start.connect("activate", self.start_session)
     self.menu.append(self.start)
 
     # Pause item
-    self.pause = gtk.MenuItem('Pause')
+    self.pause = self._get_menu_item(gtk.STOCK_MEDIA_PAUSE, 'Pause', [WorkdaySession.SESSION_STARTED])
     self.pause.connect("activate", self.pause_session)
-    self.pause.set_sensitive(True if session_status == WorkdaySession.SESSION_STARTED else False)
     self.menu.append(self.pause)
 
-    # Tooltip item
-    self.end = gtk.MenuItem('End')
+    # End item
+    end_enabled_statuses = [WorkdaySession.SESSION_STARTED, WorkdaySession.SESSION_PAUSED]
+    self.end = self._get_menu_item(gtk.STOCK_MEDIA_STOP, 'End', end_enabled_statuses)
     self.end.connect("activate", self.end_session_confirm, None)
-    self.end.set_sensitive(False if session_status in clean_session_statuses else True)
     self.menu.append(self.end)
 
     # A separator
     self.menu.append(gtk.SeparatorMenuItem())
 
-    self.new = gtk.MenuItem('New session')
-    self.new.connect('activate', self.new_session, None)
+    # New session item
     new_session_statuses = [WorkdaySession.SESSION_PAUSED]
-    self.new.set_sensitive(True if session_status in new_session_statuses else False)
+    self.new = self._get_menu_item(gtk.STOCK_ADD, 'New session', new_session_statuses)
+    self.new.connect('activate', self.new_session, None)
     self.menu.append(self.new)
 
     # Unclosed sessions
@@ -146,8 +144,10 @@ class Workday:
       previous_session_label_text = 'Ended session:\n(No ended session)'
       pass
     previous_session_label = gtk.Label(previous_session_label_text)
-    ended_session_info = gtk.MenuItem()
+    ended_session_info = gtk.ImageMenuItem()
     ended_session_info.add(previous_session_label)
+    ended_session_info.set_image(gtk.image_new_from_pixbuf(ended_session_info.render_icon(gtk.STOCK_INFO, gtk.ICON_SIZE_MENU)))
+    ended_session_info.set_always_show_image(True)
     ended_session_info.set_sensitive(False)
     self.ended_session_info = ended_session_info
     self.menu.append(ended_session_info)
@@ -165,6 +165,23 @@ class Workday:
     self.menu.show_all()
 
     return self.menu
+
+  def _get_menu_item(self, stock_icon, label_text, enabled_statuses):
+    session_status = self._session.getStatus()
+
+    mi_sensitive = True if session_status in enabled_statuses else False
+    mi = gtk.ImageMenuItem(label_text)
+    mi.set_always_show_image(True)
+    miimage = mi.render_icon(stock_icon, gtk.ICON_SIZE_MENU)
+    mi.set_image(gtk.image_new_from_pixbuf(miimage))
+
+    empty_icon = mi.render_icon(gtk.STOCK_NEW, gtk.ICON_SIZE_MENU).copy()
+    empty_icon.fill(0x00000000)
+    miimage.composite(empty_icon, 0, 0, miimage.get_width(), miimage.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_NEAREST, 255 if mi_sensitive else 127)
+    mi.set_image(gtk.image_new_from_pixbuf(empty_icon))
+    mi.set_sensitive(mi_sensitive)
+
+    return mi
 
   def update_menu(self):
     self.ind.set_menu(self.get_menu())
