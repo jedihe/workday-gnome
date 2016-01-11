@@ -179,12 +179,17 @@ class Workday:
     return mi
 
   def _get_menu_icon(self, widget, stock_icon, sensitive = True):
+    # Create the requested icon
     icon = widget.render_icon(stock_icon, gtk.ICON_SIZE_MENU)
 
+    # Create the icon to use as empty canvas, use .copy() to ensure no shared pixbuf between calls
     empty_icon = widget.render_icon(gtk.STOCK_NEW, gtk.ICON_SIZE_MENU).copy()
+    # Clean the canvas entirely (full transparency)
     empty_icon.fill(0x00000000)
+    # Composite the requested icon on top of the canvas, apply transparency according to sensitive state
     icon.composite(empty_icon, 0, 0, icon.get_width(), icon.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_NEAREST, 255 if sensitive else 127)
 
+    # Return a new image created from the pixbuf
     return gtk.image_new_from_pixbuf(empty_icon)
 
   def update_menu(self):
