@@ -246,10 +246,18 @@ class Workday:
 
   def end_session_confirm(self, *args):
     messagedialog = gtk.MessageDialog(parent=None,
-                                      flags=gtk.DIALOG_MODAL,
+                                      flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                                       type=gtk.MESSAGE_WARNING,
                                       buttons=gtk.BUTTONS_OK_CANCEL,
-                                      message_format="Are you sure you want to end the session?")
+                                      message_format="\nAre you sure you want to end the session?")
+    # Trick to show the dialog above everything else
+    messagedialog.set_title('Confirmation')
+    messagedialog.show_all()
+    messagedialog.set_keep_above(True)
+    messagedialog.set_keep_above(False)
+    messagedialog.grab_focus()
+    messagedialog.show()
+
     if messagedialog.run() == gtk.RESPONSE_OK:
       self.end_session()
 

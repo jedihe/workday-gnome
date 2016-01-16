@@ -30,6 +30,12 @@ class wdTextEntryDialog(object):
       #add it and show it
       dialog.vbox.pack_end(hbox, True, True, 0)
       dialog.show_all()
+      # Trick to show the dialog above everything else
+      dialog.set_keep_above(True)
+      dialog.set_keep_above(False)
+      dialog.grab_focus()
+      dialog.show()
+
       #go go go
       dialog.run()
       text = entry.get_text()
