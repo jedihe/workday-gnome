@@ -106,7 +106,7 @@ class Workday:
 
     # New session item
     new_session_statuses = [WorkdaySession.SESSION_PAUSED]
-    self.new = self._get_menu_item(gtk.STOCK_ADD, 'New session', new_session_statuses)
+    self.new = self._get_menu_item(gtk.STOCK_NEW, 'New session', new_session_statuses)
     self.new.connect('activate', self.new_session, None)
     self.menu.append(self.new)
 
