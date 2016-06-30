@@ -63,6 +63,7 @@ class Workday:
     self.ind = appindicator.Indicator("workday","workday", appindicator.CATEGORY_APPLICATION_STATUS)
     self.ind.set_status (appindicator.STATUS_ACTIVE)
     self.ind.set_icon(self.icon_directory()+"idle.png")
+    self.ind.set_label("Workday")
 
     self.ind.set_menu(self.get_menu())
 
@@ -341,6 +342,8 @@ class Workday:
       self._session.save()
 
     self.update_session_info_menu_item()
+    # Update indicator label with total time.
+    self.ind.set_label("[{}]".format(self.format_seconds_to_hhmmss(self._session.getDuration())))
 
   def format_seconds_to_hhmmss(self, seconds):
       hours = seconds // (60*60)
