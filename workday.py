@@ -274,7 +274,7 @@ class Workday:
   def start_recording(self):
     if not self.cur_proc:
       chunkFilename = 'workday-{}.mp4'.format(strftime('%Y-%m-%d-%H-%M-%S'))
-      cmd_args = "-an -f x11grab -r {} -s {} -i $DISPLAY+0,0 -vcodec libx264 -b 150k -threads 2 -y {}/{}".format(INPUT_FPS, SIZE, self._session.getDirPathShellQuoted(), chunkFilename)
+      cmd_args = "-an -f x11grab -r {} -s {} -i $DISPLAY+0,0 -vcodec libx264 -b 150k -x264opts keyint=15:min-keyint=15:scenecut=-1 -threads 2 -y {}/{}".format(INPUT_FPS, SIZE, self._session.getDirPathShellQuoted(), chunkFilename)
       self.cur_record_start_time = time()
       self.cur_record_last_time = self.cur_record_start_time
       self.ind.set_icon(self.icon_directory()+"working.png")
