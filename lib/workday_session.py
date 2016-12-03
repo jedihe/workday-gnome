@@ -8,16 +8,16 @@ class WorkdaySession:
     SESSION_ENDED = 1003
 
     def __init__(self, workdayConfig, name = None):
-        if name == None or name == '':
-            name = time.strftime('%Y-%m-%d-%H-%M-%S')
         self._name = name
         self._duration = 0
-        self._dirPath = os.path.expanduser("~") + "/Videos/workday/" + self._name
         self._started = False
         self._cfg = workdayConfig
         self._status = self.SESSION_NOT_STARTED
 
     def start(self):
+        if self._name == None or self._name == '':
+            self._name = time.strftime('%Y-%m-%d-%H-%M-%S')
+        self._dirPath = os.path.expanduser("~") + "/Videos/workday/" + self._name
         self._status = self.SESSION_STARTED
         if not os.path.exists(self._dirPath):
             os.makedirs(self._dirPath)
