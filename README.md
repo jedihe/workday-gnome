@@ -6,10 +6,9 @@ Record a timelapse of your workday.
 Requirements
 ============
 
-- Ubuntu 12.04
+- Ubuntu 12.04/14.04
 - FFMpeg with x11grab
 - Python 2.7
-- MP4Box
 
 Usage
 =====

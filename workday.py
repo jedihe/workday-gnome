@@ -295,7 +295,7 @@ class Workday:
     if not self.cur_proc:
       # Properly quote the filename since it may include spaces
       output_filename = "'full-{}.mp4'".format(self._session.getName().replace("'", "'\\''"))
-      compile_command = "cd {} && MP4Box $(for file in workday-*.mp4; do echo -n ' -cat '$file; done) {}".format(self._session.getDirPathShellQuoted(), output_filename)
+      compile_command = "cd {} && for file in workday*; do echo \"file $file\" >> workday-file-list.txt; done && ffmpeg -f concat -i workday-file-list.txt -codec copy {} && rm workday-file-list.txt".format(self._session.getDirPathShellQuoted(), output_filename)
       print compile_command
       subprocess.call(compile_command, shell=True)
 
