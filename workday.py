@@ -242,6 +242,28 @@ class Workday:
       self._session.stop()
       self.stop_recording()
 
+      # Update duration
+      durations = subprocess.check_output(["cd {} && for file in *.mp4; do ffprobe -i $file -show_streams | grep duration=; done".format(self._session.getDirPathShellQuoted())], shell=True)
+      durations = [int(float(item.replace("duration=", ""))) for item in durations.splitlines()]
+      duration = reduce(lambda a,b: a+b, durations)
+      messagedialog = gtk.MessageDialog(parent=None,
+                                        flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                                        type=gtk.MESSAGE_WARNING,
+                                        buttons=gtk.BUTTONS_OK_CANCEL,
+                                        message_format="\nUpdate session duration from {} to {}?".format(self.format_seconds_to_hhmmss(self._session.getDuration()), self.format_seconds_to_hhmmss(duration)))
+      # Trick to show the dialog above everything else
+      messagedialog.set_title('Confirmation')
+      messagedialog.show_all()
+      messagedialog.set_keep_above(True)
+      messagedialog.set_keep_above(False)
+      messagedialog.grab_focus()
+      messagedialog.show()
+
+      if messagedialog.run() == gtk.RESPONSE_OK:
+        self._session.setDuration(duration)
+
+      messagedialog.destroy()
+
       self.update_menu()
     pass
 
