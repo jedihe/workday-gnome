@@ -1,17 +1,25 @@
 #!/usr/bin/env python
 from __future__ import division
 
-import pygtk
-pygtk.require('2.0')
-import gtk
+#import pygtk
+#pygtk.require('2.0')
+#import gtk
 import os
 from datetime import timedelta
 import time
 from time import *
 from math import floor
-gtk.gdk.threads_init()
-import gobject
-import appindicator
+#gtk.gdk.threads_init()
+#import gobject
+import gi
+gi.require_version('Gtk', '3.0')
+gi.require_version('Notify', '0.7')
+gi.require_version('AppIndicator3', '0.1')
+from gi.repository import GObject as gobject
+from gi.repository import AppIndicator3 as appindicator
+from gi.repository import Gtk as gtk
+from gi.repository import Gdk as gdk
+from gi.repository import GdkPixbuf as gdkpixbuf
 import subprocess
 
 from lib.workday_config import WorkdayConfig
@@ -60,10 +68,10 @@ class Workday:
     self.ended_session = None
 
     # Indicator setup
-    self.ind = appindicator.Indicator("workday","workday", appindicator.CATEGORY_APPLICATION_STATUS)
-    self.ind.set_status (appindicator.STATUS_ACTIVE)
+    self.ind = appindicator.Indicator.new("workday","workday", appindicator.IndicatorCategory.APPLICATION_STATUS)
+    self.ind.set_status (appindicator.IndicatorStatus.ACTIVE)
     self.ind.set_icon(self.icon_directory()+"idle.png")
-    self.ind.set_label("Workday")
+    self.ind.set_label("Workday", "Workday")
 
     self.ind.set_menu(self.get_menu())
 
@@ -181,17 +189,17 @@ class Workday:
 
   def _get_menu_icon(self, widget, stock_icon, sensitive = True):
     # Create the requested icon
-    icon = widget.render_icon(stock_icon, gtk.ICON_SIZE_MENU)
+    icon = widget.render_icon(stock_icon, gtk.IconSize.MENU)
 
     # Create the icon to use as empty canvas, use .copy() to ensure no shared pixbuf between calls
-    empty_icon = widget.render_icon(gtk.STOCK_NEW, gtk.ICON_SIZE_MENU).copy()
+    empty_icon = widget.render_icon(gtk.STOCK_NEW, gtk.IconSize.MENU).copy()
     # Clean the canvas entirely (full transparency)
     empty_icon.fill(0x00000000)
     # Composite the requested icon on top of the canvas, apply transparency according to sensitive state
-    icon.composite(empty_icon, 0, 0, icon.get_width(), icon.get_height(), 0, 0, 1, 1, gtk.gdk.INTERP_NEAREST, 255 if sensitive else 127)
+    icon.composite(empty_icon, 0, 0, icon.get_width(), icon.get_height(), 0, 0, 1, 1, gdkpixbuf.InterpType.NEAREST, 255 if sensitive else 127)
 
     # Return a new image created from the pixbuf
-    return gtk.image_new_from_pixbuf(empty_icon)
+    return gtk.Image.new_from_pixbuf(empty_icon)
 
   def update_menu(self):
     self.ind.set_menu(self.get_menu())
@@ -272,9 +280,9 @@ class Workday:
 
   def end_session_confirm(self, *args):
     messagedialog = gtk.MessageDialog(parent=None,
-                                      flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                                      type=gtk.MESSAGE_WARNING,
-                                      buttons=gtk.BUTTONS_OK_CANCEL,
+                                      flags=gtk.DialogFlags.MODAL | gtk.DialogFlags.DESTROY_WITH_PARENT,
+                                      type=gtk.MessageType.WARNING,
+                                      buttons=gtk.ButtonsType.OK_CANCEL,
                                       message_format="\nAre you sure you want to end the session?")
     # Trick to show the dialog above everything else
     messagedialog.set_title('Confirmation')
@@ -284,7 +292,7 @@ class Workday:
     messagedialog.grab_focus()
     messagedialog.show()
 
-    if messagedialog.run() == gtk.RESPONSE_OK:
+    if messagedialog.run() == gtk.ResponseType.OK:
       self.end_session()
 
     messagedialog.destroy()
