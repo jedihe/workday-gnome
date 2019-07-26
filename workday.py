@@ -58,6 +58,7 @@ class Workday:
     self._wd_config = WorkdayConfig()
     self._session = WorkdaySession(self._wd_config, None)
     self.ended_session = None
+    self._chunks_duration = {}
 
     # Indicator setup
     self.ind = appindicator.Indicator("workday","workday", appindicator.CATEGORY_APPLICATION_STATUS)
@@ -244,8 +245,26 @@ class Workday:
 
       try:
         # Update duration
-        durations = subprocess.check_output(["cd {} && for file in workday*.mp4; do ffprobe -i $file -show_streams | grep duration=; done".format(self._session.getDirPathShellQuoted())], shell=True)
-        durations = [int(float(item.replace("duration=", ""))) for item in durations.splitlines()]
+        sess_dir = self._session.getDirPath()
+        chunks_list = [f for f in os.listdir(sess_dir) if os.path.isfile(os.path.join(sess_dir, f)) and f.startswith('workday-')]
+        print chunks_list
+        durations = []
+
+        for f in chunks_list:
+          print "--- Processing chunk {} from chunks_list".format(f)
+          if self._chunks_duration.has_key(f):
+            durations.append(self._chunks_duration[f])
+          else:
+            try:
+              chunk_stat = subprocess.check_output(["ffprobe -i {} -show_streams -hide_banner | grep duration=".format(os.path.join(sess_dir, f))], shell=True)
+              if chunk_stat.startswith("duration="):
+                chunk_duration = int(float(chunk_stat.replace("duration=", "")))
+                self._chunks_duration[f] = chunk_duration
+                durations.append(chunk_duration)
+            except:
+              pass
+
+        print "- All durations: {}".format(durations)
         duration = reduce(lambda a,b: a+b, durations)
         messagedialog = gtk.MessageDialog(parent=None,
                                           flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
