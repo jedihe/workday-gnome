@@ -287,6 +287,8 @@ class Workday:
         pass
 
       self.update_menu()
+      # Update indicator label with total time.
+      self.ind.set_label("[{}]".format(self.format_seconds_to_hhmmss(self._session.getDuration())))
     pass
 
   def end_session_confirm(self, *args):
