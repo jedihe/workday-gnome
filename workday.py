@@ -21,8 +21,8 @@ from lib.pygtk_text_entry_dialog import wdTextEntryDialog
 #Parameters
 INPUT_FPS="0.5"
 SIZE="1920x1080"
-VIDEO_CHUNK_LENGTH=600 # Seconds
-TICK_INTERVAL=5000 # Milliseconds
+VIDEO_CHUNK_LENGTH=300 # Seconds
+TICK_INTERVAL=2000 # Milliseconds
 
 '''
 Helper routine, allows inspecting a gtk widget tree
