@@ -10,6 +10,7 @@ class WorkdaySession:
     def __init__(self, workdayConfig, name = None):
         self._name = name
         self._duration = 0
+        self._chunks_duration = {}
         self._started = False
         self._cfg = workdayConfig
         self._status = self.SESSION_NOT_STARTED

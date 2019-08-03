@@ -256,11 +256,15 @@ class Workday:
             durations.append(self._chunks_duration[f])
           else:
             try:
-              chunk_stat = subprocess.check_output(["ffprobe -i {} -show_streams -hide_banner | grep duration=".format(os.path.join(sess_dir, f))], shell=True)
-              if chunk_stat.startswith("duration="):
-                chunk_duration = int(float(chunk_stat.replace("duration=", "")))
+              #chunk_stat = subprocess.check_output(["ffprobe -i {} -show_streams -hide_banner | grep duration=".format(os.path.join(sess_dir, f))], shell=True)
+              chunk_stat = subprocess.check_output(["ffprobe -i {} -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1".format(os.path.join(sess_dir, f))], shell=True)
+              try:
+                chunk_duration = int(float(chunk_stat))
                 self._chunks_duration[f] = chunk_duration
                 durations.append(chunk_duration)
+              except ValueError:
+                pass
+
             except:
               pass
 
