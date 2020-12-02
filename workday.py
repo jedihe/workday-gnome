@@ -1,9 +1,17 @@
 #!/usr/bin/env python
 from __future__ import division
 
-import pygtk
-pygtk.require('2.0')
-import gtk
+from gi import pygtkcompat
+pygtkcompat.enable()
+pygtkcompat.enable_gtk(version='3.0')
+
+#import pygtk
+#pygtk.require('3.0')
+#import gtk
+from gi.repository import Gtk as gtk
+import gi
+gi.require_version('AppIndicator3', '0.1')
+from gi.repository import AppIndicator3 as appindicator
 import os
 from datetime import timedelta
 import time
@@ -11,7 +19,7 @@ from time import *
 from math import floor
 gtk.gdk.threads_init()
 import gobject
-import appindicator
+#import appindicator
 import subprocess
 
 from lib.workday_config import WorkdayConfig
@@ -21,6 +29,7 @@ from lib.pygtk_text_entry_dialog import wdTextEntryDialog
 #Parameters
 INPUT_FPS="0.5"
 SIZE="1920x1080"
+SIZE="1366x768"
 VIDEO_CHUNK_LENGTH=300 # Seconds
 TICK_INTERVAL=2000 # Milliseconds
 
@@ -61,10 +70,10 @@ class Workday:
     self._chunks_duration = {}
 
     # Indicator setup
-    self.ind = appindicator.Indicator("workday","workday", appindicator.CATEGORY_APPLICATION_STATUS)
-    self.ind.set_status (appindicator.STATUS_ACTIVE)
+    self.ind = appindicator.Indicator.new("workday","workday", appindicator.IndicatorCategory.APPLICATION_STATUS)
+    self.ind.set_status (appindicator.IndicatorStatus.ACTIVE)
     self.ind.set_icon(self.icon_directory()+"idle.png")
-    self.ind.set_label("Workday")
+    self.ind.set_label("Workday", "")
 
     self.ind.set_menu(self.get_menu())
 
@@ -292,7 +301,7 @@ class Workday:
 
       self.update_menu()
       # Update indicator label with total time.
-      self.ind.set_label("[{}]".format(self.format_seconds_to_hhmmss(self._session.getDuration())))
+      self.ind.set_label("[{}]".format(self.format_seconds_to_hhmmss(self._session.getDuration())), "")
     pass
 
   def end_session_confirm(self, *args):
@@ -393,7 +402,7 @@ class Workday:
 
     self.update_session_info_menu_item()
     # Update indicator label with total time.
-    self.ind.set_label("[{}]".format(self.format_seconds_to_hhmmss(self._session.getDuration())))
+    self.ind.set_label("[{}]".format(self.format_seconds_to_hhmmss(self._session.getDuration())), "")
 
   def format_seconds_to_hhmmss(self, seconds):
       hours = seconds // (60*60)
