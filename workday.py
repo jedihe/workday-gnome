@@ -361,6 +361,7 @@ class Workday:
     if self.cur_proc:
       #self.cur_proc.communicate('q\n')
       self.cur_proc.send_signal(signal.SIGINT)
+      self.cur_proc.wait()
       self.cur_proc = None
       self.cur_record_start_time = None
       self.cur_record_last_time = None
