@@ -20,6 +20,7 @@ from math import floor
 gtk.gdk.threads_init()
 import gobject
 #import appindicator
+import signal
 import subprocess
 
 from lib.workday_config import WorkdayConfig
@@ -30,6 +31,7 @@ from lib.pygtk_text_entry_dialog import wdTextEntryDialog
 INPUT_FPS="0.5"
 SIZE="1920x1080"
 SIZE="1366x768"
+SIZE="w=1366:h=768"
 VIDEO_CHUNK_LENGTH=300 # Seconds
 TICK_INTERVAL=2000 # Milliseconds
 
@@ -334,16 +336,31 @@ class Workday:
     if not self.cur_proc:
       chunkFilename = 'workday-{}.mp4'.format(strftime('%Y-%m-%d-%H-%M-%S'))
       cmd_args = "-an -f x11grab -r {} -s {} -i $DISPLAY+0,0 -vcodec libx264 -b 150k -x264opts keyint=15:min-keyint=15:scenecut=-1 -threads 2 -y {}/{}".format(INPUT_FPS, SIZE, self._session.getDirPathShellQuoted(), chunkFilename)
+      cmd_parts = [
+        "/usr/bin/ffmpeg",
+        "-crtc_id", "42",
+        "-framerate", "10",
+        "-f", "kmsgrab",
+        "-i", "-",
+        "-vaapi_device", "/dev/dri/renderD128",
+        "-filter:v", "hwmap,scale_vaapi={}:format=nv12,hwdownload,fps={}".format(SIZE, INPUT_FPS),
+        "-c:v", "libx264",
+        "-b:v", "150k",
+        "-r:v", "{}".format(INPUT_FPS),
+        "-y", "{}/{}".format(self._session.getDirPath(), chunkFilename)
+      ]
       self.cur_record_start_time = time()
       self.cur_record_last_time = self.cur_record_start_time
       self.ind.set_icon(self.icon_directory()+"working.png")
-      self.cur_proc = subprocess.Popen(["ffmpeg {}".format(cmd_args)], shell=True, stdin=subprocess.PIPE)
+      #self.cur_proc = subprocess.Popen(["ffmpeg {}".format(cmd_args)], shell=True, stdin=subprocess.PIPE)
+      self.cur_proc = subprocess.Popen(cmd_parts, stdin=subprocess.PIPE, stdout=subprocess.PIPE, env={"LIBVA_DRIVER_NAME": "i965", "PATH": "/usr/bin"})
       source_id = gobject.timeout_add(TICK_INTERVAL, self.update)
     pass
 
   def stop_recording(self):
     if self.cur_proc:
-      self.cur_proc.communicate('q\n')
+      #self.cur_proc.communicate('q\n')
+      self.cur_proc.send_signal(signal.SIGINT)
       self.cur_proc = None
       self.cur_record_start_time = None
       self.cur_record_last_time = None
